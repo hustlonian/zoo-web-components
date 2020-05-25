@@ -405,7 +405,7 @@
 	const toggleColumnEditor = () => {
 		columnEditorShown = !columnEditorShown;
 		if (columnEditorShown) {
-			gridRoot.querySelector(':scope > .header-toggler-container').scrollIntoView({behavior: "smooth", block: "center", inline: "nearest"});
+			gridRoot.querySelector(':scope > .header-toggler-container input').focus();
 		}
 	}
 
