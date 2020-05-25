@@ -16,9 +16,10 @@
 	</slot>
 	<div class="header-toggler-container">
 	<div class="header-toggler {columnEditorShown ? 'visible' : ''}">
-		{#each [...headerTitles.keys()] as headerTitle}
-			<zoo-checkbox labeltext="{headerTitle}" on:click="{e => handleTitleToggle(e, headerTitle)}">
-				<input type="checkbox" slot="checkboxelement" checked/>
+		{#each [...headerTitles.keys()] as headerTitle, i}
+			<zoo-checkbox on:click="{e => handleTitleToggle(e, headerTitle)}">
+				<input id="{i}" type="checkbox" slot="checkboxelement" checked/>
+				<label for="{i}" slot="checkboxlabel">{headerTitle}</label>
 			</zoo-checkbox>
 		{/each}
 		<svg on:click="{() => toggleColumnEditor()}" width="24" height="24" viewBox="0 0 24 24">
