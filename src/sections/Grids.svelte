@@ -3,14 +3,13 @@
 <app-context text="Forth section is a showcase of grids"></app-context>
 
 <div class="grids-holder" bind:this="{gridHolder}">
-	<h3>A grid with pagination, resizing, reorder and sorting.</h3>
+	<h3>A grid with pagination, resizing, reorder, sorting and column toggle.</h3>
 
 	<div class="grid-holder">
-	<zoo-grid class="limited-width grid-1" stickyheader paginator currentpage="5" maxpages="20" resizable reorderable
+	<zoo-grid class="limited-width grid-1" stickyheader paginator currentpage="5" maxpages="20" resizable reorderable columntoggle
 			on:sortChange="{e => handleSortChange(e.detail)}" on:pageChange="{e => handlePageChange(e.detail)}">
-
 		{#each headers as header, idx}
-			<zoo-grid-header class="header-cell" slot="headercell" sortable={header.sortable} sortableproperty='{header.sortProperty}'>{header.title}</zoo-grid-header>
+			<zoo-grid-header class="header-cell" slot="headercell" columntitle='{header.title}' sortable={header.sortable} sortableproperty='{header.sortProperty}'>{header.title}</zoo-grid-header>
 		{/each}
 		{#each data as row} 
 			<div class="example-row limited-width" slot="row">
@@ -58,10 +57,10 @@
 	<h3>Grid with sticky header and pagination. Grid height and width are limited on the client side.</h3>
 
 	<div class="grid-holder" style="max-width: 850px; max-height: 300px;">
-		<zoo-grid class="limited-width grid-2" style="min-width: 1024px; margin: 0 auto; display: block;" stickyheader paginator
+		<zoo-grid class="limited-width grid-2" style="min-width: 1024px;" stickyheader paginator columntoggle
 			currentpage="1" maxpages="4" on:sortChange="{e => handleSortChange(e.detail)}" on:pageChange="{e => handlePageChange(e.detail)}">
-			{#each extendedHeaders as header, i}
-				<zoo-grid-header slot="headercell" sortable={header.sortable ? 'sortable' : null} sortableproperty='{header.sortProperty}'>{header.title}</zoo-grid-header>
+			{#each extendedHeaders as header}
+				<zoo-grid-header slot="headercell" columntitle='{header.title}'>{header.title}</zoo-grid-header>
 			{/each}
 
 			{#each extendedData as row} 
@@ -104,7 +103,7 @@
 	<div class="grid-holder">
 		<zoo-grid class="limited-width" paginator>
 			{#each headers as header}
-				<zoo-grid-header slot="headercell" sortable={header.sortable ? 'sortable' : null} sortableproperty='{header.sortProperty}'>{header.title}</zoo-grid-header>
+				<zoo-grid-header slot="headercell">{header.title}</zoo-grid-header>
 			{/each}
 			<div slot="norecords" class="example-row limited-width">
 				No records to show!
@@ -124,7 +123,7 @@
 						</zoo-button>
 					</zoo-grid-header>
 				{:else}
-					<zoo-grid-header slot="headercell" sortable={header.sortable ? 'sortable' : null} sortableproperty='{header.sortProperty}'>{header.title}</zoo-grid-header>
+					<zoo-grid-header slot="headercell">{header.title}</zoo-grid-header>
 				{/if}
 			{/each}
 		</zoo-grid>

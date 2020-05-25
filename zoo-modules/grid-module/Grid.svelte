@@ -4,7 +4,7 @@
 		<div class="loading-shade"></div>
 		<zoo-spinner></zoo-spinner>
 	{/if}
-	<div class="header-row" on:sortChange="{e => handleSortChange(e)}">
+	<div class="header-row" on:sortChange="{e => handleSortChange(e)}" on:columnToggle="{() => toggleColumnEditor()}">
 		<slot name="headercell" bind:this={headerCellSlot}></slot>
 	</div>
 	<slot name="row" bind:this={rowSlot}></slot>
@@ -14,6 +14,18 @@
 			<slot name="pagesizeselector" slot="pagesizeselector"></slot>
 		</zoo-grid-paginator>
 	</slot>
+	<div class="header-toggler-container">
+	<div class="header-toggler {columnEditorShown ? 'visible' : ''}">
+		{#each [...headerTitles.keys()] as headerTitle}
+			<zoo-checkbox labeltext="{headerTitle}" on:click="{e => handleTitleToggle(e, headerTitle)}">
+				<input type="checkbox" slot="checkboxelement" checked/>
+			</zoo-checkbox>
+		{/each}
+		<svg on:click="{() => toggleColumnEditor()}" width="24" height="24" viewBox="0 0 24 24">
+			<path d="M19 6l-1-1-6 6-6-6-1 1 6 6-6 6 1 1 6-6 6 6 1-1-6-6z"/>
+		</svg>
+	</div>
+	</div>
 </div>
 
 <style type='text/scss'>
@@ -137,6 +149,40 @@
 		bottom: 0;
 		background: $white;
 	}
+
+	.header-toggler-container {
+		position: absolute;
+		bottom: 0;
+		width: 100%;
+	}
+
+	.header-toggler {
+		display: grid;
+		grid-template-columns: repeat(auto-fit, minmax(0px, 1fr));
+		position: sticky;
+		padding: 10px 0;
+		bottom: 0;
+		background: white;
+		border-radius: 5px;
+		box-shadow: $box-shadow-strong;
+		width: 100%;
+		z-index: 2;
+		transition: opacity 0.2s;
+		opacity: 0;
+		pointer-events: none;
+		justify-items: center;
+		align-items: center;
+	}
+
+	.header-toggler svg {
+		cursor: pointer;
+	}
+
+	.header-toggler.visible {
+		position: sticky;
+		pointer-events: initial;
+		opacity: 1;
+	}
 </style>
 
 <script>
@@ -150,6 +196,8 @@
 	let resizeObserver;
 	let prevSortedHeader;
 	let draggedOverHeader;
+	let headerTitles = new Map();
+	let columnEditorShown = false;
 	// sortable grid -> set min-width to set width
 	// not sortable -> set --grid-column-sizes variable
 	onMount(() => {
@@ -186,6 +234,9 @@
 		if (host.hasAttribute('reorderable')) {
 			handleDraggableHeaders(headers, host);
 		}
+		if (host.hasAttribute('columntoggle')) {
+			handleToggleHeaders(headers, host);
+		}
 	}
 
 	const handleResizableHeaders = (headers, host) => {
@@ -199,6 +250,31 @@
 	const handleDraggableHeaders = (headers, host) => {
 		for (let header of headers) {
 			handleDraggableHeader(header, host);
+		}
+	}
+
+	const handleToggleHeaders = (headers, host) => {
+		headerTitles = new Map();
+		for (let header of headers) {
+			if (!header.columntitle) console.warn('Toggleable header created without "columntitle" property! Set "columntitle" for each "zoo-grid-header"');
+			headerTitles.set(header.columntitle, header.getAttribute('column'));
+		}
+		for (let header of headers) {
+			header.setAttribute('columntoggle', true);
+		}
+	}
+
+	const handleTitleToggle = (e, headerTitle) => {
+		let targetInput;
+		if (e.target.tagName == 'INPUT') {
+			targetInput = e.target;
+		} else if (e.target.tagName == 'ZOO-CHECKBOX') {
+			targetInput = e.target.querySelector(':scope > input');
+		}
+		const i = headerTitles.get(headerTitle);
+		const columnElements = gridRoot.getRootNode().host.querySelectorAll('[column="' + i + '"]');
+		for (const colEl of columnElements) {
+			colEl.style.display = targetInput.checked ? 'flex' : 'none';
 		}
 	}
 
@@ -291,13 +367,15 @@
 			requestAnimationFrame(() => {
 				for (const entry of entries) {
 					const columnNum = entry.target.getAttribute('column');
-					const rowColumns = host.querySelectorAll(':scope > [slot="row"] > [column="' + columnNum + '"] ');
+					const rowsColumn = host.querySelectorAll(':scope > [slot="row"] > [column="' + columnNum + '"] ');
 					const headerColumn = host.querySelector(':scope > [column="' + columnNum + '"]');
-					const elements = [...rowColumns, headerColumn];
+					const elements = [...rowsColumn, headerColumn];
 					const width = entry.contentRect.width;
 					
 					for (const columnEl of elements) {
-						columnEl.style.width = width + 'px';
+						if (columnEl.style.display != 'none') {
+							columnEl.style.width = width + 'px';
+						}
 					}
 				}
 			});
@@ -323,6 +401,13 @@
 			detail: {pageNumber: e.detail.pageNumber}, bubbles: true
 		}));
 	};
+
+	const toggleColumnEditor = () => {
+		columnEditorShown = !columnEditorShown;
+		if (columnEditorShown) {
+			gridRoot.querySelector(':scope > .header-toggler-container').scrollIntoView({behavior: "smooth", block: "center", inline: "nearest"});
+		}
+	}
 
 	onDestroy(() => {
 		if(resizeObserver) {
