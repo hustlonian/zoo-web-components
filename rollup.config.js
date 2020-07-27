@@ -36,10 +36,10 @@ export default [
 	{
 		plugins: [
 			injectInnerHTML(),
-			terser({
-				module: true,
-				keep_classnames: true
-			}),
+			// terser({
+			// 	module: true,
+			// 	keep_classnames: true
+			// }),
 		],
 		input: 'src/components.js',
 		output: {
